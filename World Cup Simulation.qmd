@@ -1,0 +1,242 @@
+---
+title: "World Cup Simulations Via Stochastic Processes Thinking"
+author: "Charis Rafeeea"
+format: pdf
+editor: visual
+---
+
+As a holiday thought experiment, I asked a simple question: **What if one country possessed the best player in the world at every position?**
+
+Note the best squad depth. Not the best Coach. The best player Every position
+
+## 1. Model idea (What I've secretly been doing here)
+
+The aim of this notes is not to cause any chaos but to bring order out of chaos, the names of players used here are not by any favouratism but purely from stats. So if you don't see your greatest player of all time not being mentioned We already say "Hae shape fatshe, ee khoptjoa ele maoto mane". Again if you notice an error or confusion in these notes, please don't hesitate to reachout to urielrafeeea92\@gmail.com, your say is welcome.
+
+The notes are basically treating football as stochastic tournament process where each team equals random variable. The outcomes depend on Team strength (latent variable), attacking intensity, defensive intensity, Variance (football is high-noise, in other words fat tails) and last but not least "absorbing states", that is the state that when you enter you cannot go back, like loser exits.
+
+So mathematically,
+
+$$f(\text{Attack}_i,\text{Defense}_j,\varepsilon)$$
+
+where $\varepsilon$ is the randomness term (your "market noise" equivalent).
+
+## 2. Team Strength Model (The "Black-Scholes Moment")
+
+It is fine if you encounter some terminology that is unfamiliar to you, don't be moved much by that, focus on the defining factor to ease your understanding. Again define a latent strength index :
+
+$$\alpha A_i + \beta D_i+ \gamma M_i$$
+
+where : $A_i$ = attacking rating ( Vinicius, Mbappe effect per say), $D_i$= defense rating (Saliba, Dias effect) and $M_i$= midfield control ( Rodri, Vitinha effect).
+
+Then define the strength differential between teams :
+
+$$\Delta_{ij} =  S_i-S_j$$
+
+## 3. Transition Probability (Logistic Martingale-Style)
+
+This is where now we map strength difference from above into a win probability using a logistic transform:
+
+$$\frac{1}{1 +\exp\left(-\frac{\Delta_{ij}}{\sigma}\right)} $$
+
+where : $\Delta_{ij}$ is the strength difference between the two compared teams namely team i and j and $\sigma$ represents football randomness Volatility.
+
+We will have to take note of the following decriptions that: High $\sigma$ will imply chaos whereas Low $\sigma$ will imply that talent dominates.
+
+This is essentially a sigmoid transform of drift plus noise, not unlike translating uncertainty into probabilities in quantitative finance.
+
+## 4. Monte Carlo Tournament Simulation (R Pseudocode)
+
+Now we move from the mathematical representation of the sections above and use the R to simulate the games, and the code below is logically easy to understand but the explanation will follow quite after.
+
+```{r}
+#| echo: true
+
+simulate_match <- function(team_i,team_j, sigma =  1.2){
+  strength_diff <- team_i$strength - team_j$strength
+  ## the following as you will see is the transition probability
+  p_i <- 1 / (1 + exp(-strength_diff/ sigma))
+  
+  result <- rbinom(1,1,p_i)
+  
+ if (result == 1) {
+       return(team_i)
+   } else {
+       return(team_j)
+   }
+}
+
+
+```
+
+## 5. Knockout Tournament as an Absorbing Markov Chain
+
+Again if you come across some terminology that seems unfamiliar, just be of good cheer, but just to lay a foundation for Markov Chain, remember we say that a chain has a markov property if the future of the chain only depends on the current state of the chain not past data of the chain. So each round reduces the state space:
+
+$$32 \rightarrow16 \rightarrow 8 \rightarrow 4 \rightarrow 2 \rightarrow 1 $$
+
+Eventually every path reaches an absorbing state:
+
+**Champion or Eliminated**.
+
+```{r}
+#| echo: true
+#| warning: true
+run_world_cup <- function(teams){
+
+  while(length(teams) > 1){
+
+    winners <- list()
+
+    for(i in seq(1, length(teams), by = 2)){
+
+      winners[[length(winners) + 1]] <-
+        simulate_match(teams[[i]], teams[[i + 1]])
+
+    }
+
+    teams <- winners
+  }
+
+  return(teams[[1]]$name)
+}
+```
+
+One other thing to note, this model is a simplified stochastic representation of football outcomes. It is not intended as a predictive tool for real-world match forecasting, but rather as a Monte Carlo experiment illustrating how randomness and latent team strength interact in knockout tournaments. From a quantitative perspective, the model should be interpreted as adaptive rather than static: in real-world applications, parameters such as team strength and volatility would be continuously updated as new information becomes available. The framework therefore reflects a simplified but evolving representation of uncertainty rather than a fixed forecasting system.
+
+The latent strength scores used in this simulation are not official FIFA ratings. They are subjective indices constructed for this thought experiment to reflect the relative quality of each nation's strongest available players across all positions. Higher values indicate greater overall squad quality and serve only as inputs to the stochastic model.
+
+```{r}
+
+
+teams <- list(
+  list(name = "France", strength = 96),
+  list(name = "Morocco", strength = 88),
+  list(name = "Spain", strength = 95),
+  list(name = "Brazil", strength = 94),
+  list(name = "Norway", strength = 86),
+  list(name = "USA", strength = 84),
+  list(name = "Portugal", strength = 93),
+  list(name = "Belgium", strength = 90),
+  list(name = "Mexico", strength = 83),
+  list(name = "England", strength = 92),
+  list(name = "Argentina", strength = 94),
+  list(name = "Egypt", strength = 82),
+  list(name = "Switzerland", strength = 85),
+  list(name = "Colombia", strength = 87),
+  list(name = "Paraguay",strength = 81),
+ list(name = "Canada",strength = 79)
+)
+
+
+```
+
+## 6. Full Monte Carlo Experiment
+
+```{r}
+
+#| echo: true
+N <- 10000
+winners <- character(N)
+
+for (i in 1:N) {
+  winners[i] <- run_world_cup(teams)
+}
+
+table(winners)/N
+```
+
+This produces an empirical probability distribution of World Cup winners
+
+## 7. Interpreting Results ( Call it Your Stochastic Processes Voice)
+
+Now this is where things gets really interesting, as outlined above the data that has been used for formulations of this model is based on the assumptions of having best player at every position, so stats reveal that the nation of France possess the most best players at every level, but this is not so say, every position of France squad is best, then is followed by Spain, then Portugal and so on with that decreasing level of best player position.
+
+Now running 10,000 Monte Carlo simulations with the current latent strength parameters produced the following empirical championship probabilities:
+
+- France = 59%
+
+- Spain = 13%
+
+- Argentina = 21%
+
+- Portugal = 3%
+
+- Brazil = 1.64%
+
+- England 1.14%
+
+A natural interpretation would be:
+
+- The system exhibits high variance.
+
+- Tournament outcomes display fat tails.
+
+- Path dependence is substantial.
+
+- Upsets resembe jump shocks within the tournament process.
+
+## 8. Connecting Back to the "Ultimate XI Nation - The O-Zone Nation lol"
+
+Suppose we create a fictional nation containing:
+
+- Nuno Mendes
+
+- Saliba
+
+- Ruben Dias
+
+- Hakimi
+
+- Rodri
+
+- Vitinha
+
+- Bellingham
+
+- Yamal
+
+- Olise
+
+- Mbappe
+
+Its latent strength becomes exceptionally large:
+
+$$S_{\text{Ultimate XI}}\gg S_{\text{France}},S_{\text{Spain}}, S_{\text{Brazil}}$$
+
+In the Simulation, it domintates the mean outcome. It wins the most tournaments and it still occassionally loses.
+
+Why?
+
+Because
+
+$$\sigma > 0$$
+
+that the football randomness never disappears. A red card, a penalty shootout, an injury, a goalkeeper having the game of his life(We saw with the Cote deviour Goal keeper against their match with Spain. Variance survives.
+
+### Financial Mathematics Translation
+
+I hope many now are ready to hear what next to say about finances lol, I mean this is simply Statistics beyond major so yah yah. not gonna say plainly but I want you to think and think. The Quant Fin students will have a better understading here. The Ultimate XI Nation( O-Zone Nation) resemble a high drift asset:
+
+$$dS_t = \mu S_tdt + \sigma S_tdW_t$$
+
+where:
+
+- $\mu$= overwhelming football quality
+
+- $\sigma $= tournament randomness
+
+**Increasing quality raises drift. It does not eliminate volatility**. The World Cup remains noisy process. The champion is not necessarily the strongest team. The champion is often the team that experiences the most favourable sequence (e.g. That Senegal Iraq has gone home already, has to do with being grouped with the best competing Nations so solemnly does not define how weak Senegal is) of rare events. In the language of the Extreme Value Theory World Cups are won in the tail.
+
+A deflected goal, a missed penalty, a red card, or a goalkeeper having the game of his life. One realization from the tail can dominate the entire tournament.
+
+### Final Conclusion
+
+Modeled the FIFA World Cup as a finite state Markov chain with stochastic match transitions calibrated via latent team-strength indices. Monte Carlo simulations (10000 simulations) : The O-Zone Nation XI is the strongest team ever assembled. Yet is still fails in the over half the tournaments Football remains one of the most beautiful examples of a high-Variance stochastic systems. This behaviour is driven by the non-zero volatility parameter $(\sigma)$, which ensures that even large differences in latent strength do not eliminate outcome uncertainty.In a less academic langauge we would say : Yes I simulated perfection and even perfection still got cooked by randomness.
+
+References
+
+- Ross, S. M. (2014). Introduction to Probability Models. Academic Press.
+- Grimmett, G. & Stirzaker, D. (2001). Probability and Random Processes. Oxford University Press.
+- Keener, J. (2010). The Perron-Frobenius Theorem and the Ranking of Football Teams. SIAM Review.
+- Hvattum, L. M. & Arntzen, H. (2010). Using ELO ratings for match prediction in football. International Journal of Forecasting.
