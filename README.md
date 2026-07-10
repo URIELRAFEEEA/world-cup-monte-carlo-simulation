@@ -1,43 +1,42 @@
 # Monte Carlo Simulation of World Cup Tournament Outcomes
 
 ## Overview
+This project explores how stochastic processes and Monte Carlo simulation can be used to model FIFA World Cup knockout tournaments. Rather than predicting real tournament outcomes, it demonstrates how latent team strength and randomness interact in high-variance competitive systems.
 
-This project models FIFA World Cup knockout tournaments using stochastic processes and Monte Carlo simulation.
+## Mathematical Model
+Each team is assigned a latent strength score based on attacking, defensive and midfield quality.
 
-The objective is to investigate how latent team strength and randomness interact to determine tournament outcomes.
+Match outcomes are simulated using a logistic probability model
 
----
+P(i beats j)=1/(1+exp(-Δ/σ))
 
-## Methods
+where Δ represents the difference in latent strength and σ controls tournament volatility.
 
-- Monte Carlo Simulation
-- Logistic probability model
-- Markov chain framework
-- Latent team-strength model
-- R programming
+## Simulation
+- 10,000 Monte Carlo simulations
+- Knockout tournament represented as an absorbing Markov process
+- Implemented in R
 
----
+## Results
+Example championship probabilities:
 
-## Key Features
+France .......... 59%
+Argentina ....... 21%
+Spain ........... 13%
+Portugal ........ 3%
 
-- Simulated 10,000 tournaments
-- Estimated championship probabilities
-- Investigated variance and path dependence
-- Demonstrated the impact of uncertainty on tournament outcomes
+The simulations illustrate that even highly rated teams remain vulnerable to randomness.
 
----
+## Repository Contents
 
-## Repository Structure
-
-simulation.R
-WorldCupSimulation.pdf
-
----
+- World Cup Simulation.qmd
+- World-Cup-Simulation2.pdf
 
 ## Skills Demonstrated
 
+- Monte Carlo simulation
 - Statistical modelling
-- Monte Carlo methods
-- Probability theory
 - Stochastic processes
-- R programming
+- Markov chains
+- Probability theory
+- R
