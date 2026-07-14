@@ -1,42 +1,86 @@
-# Monte Carlo Simulation of World Cup Tournament Outcomes
+# Dynamic Monte Carlo Simulation of World Cup Tournament Outcomes
 
 ## Overview
-This project explores how stochastic processes and Monte Carlo simulation can be used to model FIFA World Cup knockout tournaments. Rather than predicting real tournament outcomes, it demonstrates how latent team strength and randomness interact in high-variance competitive systems.
 
-## Mathematical Model
-Each team is assigned a latent strength score based on attacking, defensive and midfield quality.
+This project explores how stochastic processes, probability theory and Monte Carlo simulation can be used to model FIFA World Cup knockout tournaments.
 
-Match outcomes are simulated using a logistic probability model
+The aim is not to predict football outcomes with certainty, but rather to investigate how latent team strength and randomness interact within a high-variance competitive system.
 
-P(i beats j)=1/(1+exp(-Δ/σ))
+The project develops from a static tournament model into a dynamic framework where team strength estimates are updated as new information becomes available during the tournament.
 
-where Δ represents the difference in latent strength and σ controls tournament volatility.
+---
 
-## Simulation
-- 10,000 Monte Carlo simulations
-- Knockout tournament represented as an absorbing Markov process
-- Implemented in R
+# Mathematical Framework
 
-## Results
-Example championship probabilities:
+Each team is represented through a latent strength parameter based on football quality across different dimensions such as:
 
-France .......... 59%
-Argentina ....... 21%
-Spain ........... 13%
-Portugal ........ 3%
+- Attacking ability
+- Defensive stability
+- Midfield control
 
-The simulations illustrate that even highly rated teams remain vulnerable to randomness.
+Match outcomes are simulated using a logistic probability model:
 
-## Repository Contents
+\[
+P(i \text{ wins}) =
+\frac{1}{1+\exp(-\Delta_{ij}/\sigma)}
+\]
 
-- World Cup Simulation.qmd
-- World-Cup-Simulation2.pdf
+where:
 
-## Skills Demonstrated
+- \( \Delta_{ij} \) represents the difference in latent strength between teams.
+- \( \sigma \) represents tournament volatility.
+
+Higher volatility allows greater uncertainty, while lower volatility allows strength differences to dominate outcomes.
+
+---
+
+# Methods
+
+The model uses:
 
 - Monte Carlo simulation
-- Statistical modelling
-- Stochastic processes
-- Markov chains
-- Probability theory
-- R
+- Logistic probability modelling
+- Markov chain representation of knockout tournaments
+- Absorbing state processes
+- Dynamic updating of latent strengths
+- R programming
+
+---
+
+# Simulation Framework
+
+The tournament is represented as a stochastic process:
+
+\[
+32 \rightarrow 16 \rightarrow 8 \rightarrow 4 \rightarrow 2 \rightarrow 1
+\]
+
+Each simulation represents one possible tournament path.
+
+Thousands of tournament realizations are generated to estimate the empirical probability distribution of possible champions.
+
+---
+
+# Dynamic Updating
+
+The updated version introduces information-based updating.
+
+As the tournament progresses, new information enters the filtration:
+
+- Match results
+- Defensive performances
+- Tactical observations
+- Player availability
+- Tournament momentum
+
+The latent strength of each team is therefore allowed to evolve:
+
+\[
+S_i(t+1)=S_i(t)+U_i(t)
+\]
+
+where \(U_i(t)\) represents the adjustment after incorporating new information.
+
+---
+
+# Repository Contents
